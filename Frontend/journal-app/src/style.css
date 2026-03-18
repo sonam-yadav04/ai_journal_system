@@ -1,23 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;1,400&family=Outfit:wght@300;400;500&display=swap');
 
 :root {
-  --bg:        #e5e8ecb6;
-  --surface:   #c3aeae6d;
-  --border:    #dce8f8;
-  --muted:     #132539;
-  --text:      #0a1628;
-  --text-dim:  #143f30;
-  --gold:      #0080ff;
-  --gold-glow: rgba(0, 128, 255, 0.12);
-  --rose:      #e8306a;
-  --rose-glow: rgba(232, 48, 106, 0.10);
-  --teal:      #00c896;
-  --teal-glow: rgba(0, 200, 150, 0.10);
+  --bg:        #0f1923;
+  --surface:   #162030;
+  --border:    #243040;
+  --muted:     #4a6080;
+  --text:      #e8eef5;
+  --text-dim:  #7a9ab0;
+  --gold:      #e8b84b;
+  --gold-glow: rgba(232, 184, 75, 0.15);
+  --rose:      #e07060;
+  --rose-glow: rgba(224, 112, 96, 0.12);
+  --teal:      #40c0a0;
+  --teal-glow: rgba(64, 192, 160, 0.12);
   --radius:    10px;
   --ease:      all 0.2s ease;
-  --shadow:    0 1px 4px rgba(0,80,160,0.08), 0 4px 20px rgba(0,80,160,0.06);
-  --shadow-hover: 0 4px 16px rgba(0,80,160,0.14), 0 8px 32px rgba(0,80,160,0.10);
-
+  --shadow:    0 1px 4px rgba(0,0,0,0.20), 0 4px 16px rgba(0,0,0,0.15);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.30), 0 8px 28px rgba(0,0,0,0.20);
 
    font-family: 'Outfit', sans-serif;
   background:  var(--bg);
