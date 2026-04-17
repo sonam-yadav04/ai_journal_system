@@ -1,21 +1,28 @@
-import React, { useState } from "react";
-import JournalForm from "./components/JournalForm";
-import JournalList from "./components/JournalList";
-import Insights from "./components/Insights";
+import React from "react";
+import Logins from "./pages/Logins";
+import Signup from "./pages/Signup";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Dashboard from "./Dashboard";
+
 
 function App() {
-  const [refresh, setRefresh] = useState(false);
-
-  const reload = () => setRefresh(!refresh);
-
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>AI Journal System</h1>
-
-      <JournalForm onSuccess={reload} />
-      <JournalList refresh={refresh} />
-      <Insights refresh={refresh} />
-    </div>
+    <BrowserRouter>
+      <div>
+        <Routes>
+          <Route path="/" element={<Logins />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/dashboard"
+            element={
+             
+                <Dashboard />
+     
+            }
+          />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
