@@ -3,6 +3,7 @@ import axios from "axios";
 import { Bar } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Tooltip, Legend } from "chart.js";
 import "../style.css";
+import {toast} from 'react-toastify';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -10,15 +11,15 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
   const [text, setText] = useState("");
   const [ambience, setAmbience] = useState("forest");
 
-  const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000/api/journal";
+  const API_BASE = import.meta.env.VITE_API_BASE;
   const token = localStorage.getItem("token");
   if(!token){
-    return alert("User not authenticaated! Please login to write a journal.");
+    return toast.warning("User not authenticaated! Please login to write a journal.");
   }
   const submitHandler = async () => {
     try {
       await axios.post(
-        `${API_BASE}`,
+        `${API_BASE}/journal`,
         { text, ambience },
         {
           headers: {
@@ -27,12 +28,12 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
           },
         }
       );
-      alert("Journal saved!");
+      toast.success("Journal saved!");
       setText("");
       onSuccess();
     } catch (err) {
       console.error(err);
-      alert("Failed to save journal. Please try again.");
+       toast.error("Failed to save journal. Please try again.");
     }
   };
 

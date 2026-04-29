@@ -20,7 +20,7 @@ router.post("/",auth,
               createJournal);
 
 router.get("/", auth, getJournals);
-router.post("/analyze",analyzeText);
+router.post("/analyze",auth ,analyzeText);
 router.get("/insights", auth ,getInsights);
 router.delete("/:id" ,auth, delJournal);
 router.put("/:id",auth,updateJournal);

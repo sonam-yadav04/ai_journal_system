@@ -38,15 +38,16 @@ const CustomLegend = ({ labels, colors, data }) => {
 const Insights = ({ refresh }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const[trendData , setTrendData] =useState([]);
-  
+  const API_BASE = import.meta.env.VITE_API_BASE ;
   const token = localStorage.getItem("token");  
   useEffect(() => { fetchTrends();
                   fetchInsights(); }, [refresh]);
 
    const fetchTrends = async ()=>{
     try{
-      const res = await axios.get(`http://localhost:4000/api/journal/trend`,
+      const res = await axios.get(`${API_BASE}/journal/trend`,
          {
           headers: {
             Authorization:`Bearer ${token}`
@@ -61,7 +62,8 @@ const Insights = ({ refresh }) => {
   const fetchInsights = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`http://localhost:4000/api/journal/insights`,
+      setError(null);
+      const res = await axios.get(`${API_BASE}/journal/insights`,
         {
           headers: {
             Authorization:`Bearer ${token}`
@@ -70,6 +72,7 @@ const Insights = ({ refresh }) => {
       );
       setData(res.data);
     } catch (err) {
+      setError(err.message);
       console.error("Insights fetch error:", err.message);
     } finally {
       setLoading(false);
@@ -91,7 +94,8 @@ const lineData = {
 };
 
   if (loading) return <p className="loading">Loading insights...</p>;
-  if (!data)   return <p className="empty">No insights yet. Start writing!</p>;
+  if (error) return <p className="error">Error loading insights: {error}</p>;
+  if (!data) return <p className="empty">No insights yet. Start writing!</p>;
 
   const emoLabels  = data.emotionStats.map((d) => d.emotion);
   const emoCounts  = data.emotionStats.map((d) => d.count);

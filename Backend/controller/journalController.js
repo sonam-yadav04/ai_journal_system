@@ -114,49 +114,98 @@ const journal = await Journal.create(
             message:"LLM analysis failed!",
             error:err.message
         }) }}
+export const getInsights = async (req, res) => {
+  try {
+    const userId = req.user?.user_id;
 
-export const getInsights = async(req,res)=>
-    { 
-        try{
-         const userId = req.user?.user_id; 
-        const journals = await Journal.find({userId}); 
-        const totalEntries = journals.length; 
-        const emotionCount = {}; 
-        const ambienceCount = {}; 
-        const sentimentCount = {}; 
-        let allKeywords = []; 
-        let totalScore = 0; 
-        journals.forEach(
-            j=>{ totalScore += j.sentimentScore || 0; 
-                if(j.emotion)
-                    { emotionCount[j.emotion] = (emotionCount[j.emotion] || 0) + 1; 
+    const result = await Journal.aggregate([
+      {
+        $match: { userId: new mongoose.Types.ObjectId(userId) }
+      },
+      {
+        $facet: {
+          totalEntries: [
+            { $count: "count" }
+          ],
 
-                } if(j.ambience)
-                    { ambienceCount[j.ambience] = (ambienceCount[j.ambience] || 0) +1;
+          emotions: [
+            { $group: { _id: "$emotion", count: { $sum: 1 } } }
+          ],
 
-                 } if(j.sentiment)
-                    { sentimentCount[j.sentiment] = (sentimentCount[j.sentiment] || 0) +1;
+          sentiments: [
+            { $group: { _id: "$sentiment", count: { $sum: 1 } } }
+          ],
 
-                  } if(j.keywords)
-                    { allKeywords = allKeywords.concat(j.keywords) } }); 
-        const avgSentiment = totalEntries ? totalScore / totalEntries : 0;
-         const emotionStats = Object.keys(emotionCount).map(key => ({ emotion: key, count: emotionCount[key] })); 
-         const sentimentStats = Object.keys(sentimentCount).map(key=>({ sentiment :key, count: sentimentCount[key] }));
-         const topEmotion = Object.keys(emotionCount).reduce( (a,b)=>( emotionCount[a]>emotionCount[b]?a:b ),"");
-         const topAmbience = Object.keys(ambienceCount).reduce( (a,b)=>( ambienceCount[a] > ambienceCount[b]? a:b ),"")
-        res.status(200).json(
-            { avgSentiment, totalEntries, topEmotion, topAmbience,
-                 emotionStats, sentimentStats, recentKeywords: allKeywords.slice(-5) }) 
-         }catch(err){ 
-            res.status(500).json({
-                 success:false, 
-                 message:"error generating insight", 
-                 error : err.message }) }}      
+          ambience: [
+            { $group: { _id: "$ambience", count: { $sum: 1 } } }
+          ],
 
-export const delJournal = async(req,res)=>{
+          avgSentiment: [
+            {
+              $group: {
+                _id: null,
+                avg: { $avg: "$sentimentScore" }
+              }
+            }
+          ],
+
+          keywords: [
+            { $unwind: "$keywords" },
+            {
+              $group: {
+                _id: null,
+                allKeywords: { $push: "$keywords" }
+              }
+            }
+          ]
+        }
+      }
+    ]);
+
+    const data = result[0];
+
+    const emotionStats = data.emotions.map(e => ({
+      emotion: e._id,
+      count: e.count
+    }));
+
+    const sentimentStats = data.sentiments.map(s => ({
+      sentiment: s._id,
+      count: s.count
+    }));
+
+    const topEmotion = data.emotions.length
+      ? data.emotions.sort((a, b) => b.count - a.count)[0]._id
+      : null;
+
+    const topAmbience = data.ambience.length
+      ? data.ambience.sort((a, b) => b.count - a.count)[0]._id
+      : null;
+
+    res.status(200).json({
+      success: true,
+      totalEntries: data.totalEntries[0]?.count || 0,
+      avgSentiment: data.avgSentiment[0]?.avg || 0,
+      emotionStats,
+      sentimentStats,
+      topEmotion,
+      topAmbience,
+      recentKeywords: data.keywords[0]?.allKeywords.slice(-5) || []
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error generating insights",
+      error: err.message
+    });
+  }
+};
+   export const delJournal = async(req,res)=>{
       try{
-          const id = req.params.id
-          const journal = await Journal.findByIdAndDelete(id);
+          const id = req.params.id;
+          const userId = req.user?.user_id;
+          const journal = await Journal.findByIdAndDelete({ _id: id, userId: userId });
            if (!journal) {
              return res.status(404).json({
             success: false,
@@ -184,10 +233,10 @@ export const delJournal = async(req,res)=>{
 export const updateJournal = async(req,res)=>{
     try{
        const id = req.params.id;
-       console.log("deleted id",id);
-       const updatedJournal = await Journal.findByIdAndUpdate(id,
+        const userId = req.user?.user_id;
+       const updatedJournal = await Journal.findByIdAndUpdate({_id:id, userId:userId},
         req.body,
-         {new : true}
+         {new : true, runValidators:true}
        );
        if(!updatedJournal){
         return res.status(400).json({

@@ -3,6 +3,7 @@ import { PenLine, BookOpen, BarChart2, LogOut } from "lucide-react";
 import JournalForm from "./components/JournalForm";
 import JournalList from "./components/Journallist";
 import Insights from "./components/Insights";
+import {toast} from 'react-toastify';
 import "./style.css";
 import { useNavigate } from "react-router-dom";
 
@@ -35,7 +36,8 @@ const Dashboard = () => {
  
   const handleLogout = ()=>{
     localStorage.removeItem('token');
-    alert("logout successfull");
+    
+    toast("logout successfull");
     navigate("/") 
  }
  useEffect(()=>{

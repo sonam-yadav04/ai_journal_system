@@ -3,19 +3,36 @@ import axios from "axios";
 export const analyzeEmotion = async (text) => {
   try {
     const prompt = `
-You are an AI that analyzes emotions.
+          You are an accurate emotion and sentiment analyzer.
+          Return ONLY valid JSON in this formate: 
 
-Return ONLY valid JSON. No explanation.
+          {
+            "emotion": "happy/sad/calm/angry/neutral/anxious/other",
+            "sentiment":"positive/nagative/neutral",
+            "sentimentScore": number(1 to -1),
+            "keywords": [ "word1" , "word2" , "word3"],
+            "summary": "max 20 words"
+          }
 
-Format:
-{
-  "emotion": "happy/sad/calm/angry/neutral",
-  "keywords": ["word1", "word2"],
-  "summary": "long summary"
-}
+          Rules:
+           -emotion must be one of the given categories
+           -sentiment Score must be between -1 to 1 
+           -summary must be short and meaningful
+           -keywords must be 3 to  important words
 
-Text: "${text}"
-`;
+          Examples:
+          Text: I just won the lottery!
+          {"emotion":"happy","sentiment":"positive", "sentimentScore": 0.9,
+          "summary":"Strong joy from winning big prize",
+           "keywords":["won","lottery","excited"]}
+
+          Text: Another Monday morning...
+          {"emotion":"sad","sentiment":"nagative", "sentimentScore": -0.5,
+          "summary":"Typical low-energy start of work week feeling",
+           "keywords":["monday","morning","tired"],}
+
+          Text: ${text}
+          `;
 
     console.log("Calling LLM with text:", text);
 
@@ -26,10 +43,12 @@ Text: "${text}"
         messages: [
           {
             role: "user",
-            content: prompt
+            content: prompt,
+           
           }
         ],
-        temperature: 0.3
+        temperature: 0,
+        response_format: { type: "json_object" }
       },
       {
         headers: {
@@ -41,27 +60,27 @@ Text: "${text}"
 
     console.log("LLM RAW RESPONSE:", response.data);
 
-    const content = response.data.choices[0].message.content;
+  const content = response.data.choices[0].message.content;
 
   
     let parsed;
 
-    try {
-      const start = content.indexOf("{");
-      const end = content.lastIndexOf("}");
+   try {
+     parsed = typeof content === "string"? JSON.parse(content):content;
+     if(!parsed.emotion || !parsed.sentiment){
+      throw new error("invalid AI response");
+     }
+} catch (err) {
+  console.log("Parsing failed:", err.message);
 
-      const jsonString = content.substring(start, end + 1);
-
-      parsed = JSON.parse(jsonString);
-    } catch (err) {
-      console.log("Parsing failed:", err.message);
-
-      parsed = {
-        emotion: "neutral",
-        keywords: [],
-        summary: content
-      };
-    }
+  parsed = {
+    emotion: "neutral",
+    sentiment:"neutral",
+    sentimentScore: 0,
+    keywords: [],
+    summary: text
+  };
+}
 
     return parsed;
 
