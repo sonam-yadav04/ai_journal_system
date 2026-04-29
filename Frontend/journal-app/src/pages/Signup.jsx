@@ -1,36 +1,41 @@
 import React, {useState} from "react";
 import {useNavigate,Link} from "react-router-dom";
 import axios from 'axios';
+import {toast} from 'react-toastify';
 function Signup() {
   const navigate = useNavigate();
-
+const API_BASE = import.meta.env.VITE_API_BASE ;
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formdata = new FormData(e.target);
     const { name, email, password } = Object.fromEntries(formdata);
-
+     
 
     if (!name || !email || !password) {
-      alert("All fields are required!");
+      toast.warning("All fields are required!");
       return;
     }
     try {
       const res = await axios.post(
-        "http://localhost:4000/api/auth/signup",
+        `${API_BASE}/auth/signup`,
         { name, email, password },
         { headers: { "Content-Type": "application/json" } }
       );
       if (res.data.success) {
         navigate("/");
       } else {
-        alert(res.data.message);
+         toast.success(res.data.message);
       }
     } catch (err) {
-      alert("Something went wrong!");
+      toast.error("Something went wrong!");
+      console.log(err);
     }
   };
 
   return (
+    <>
+    <h2 className="journalheading"> What's In Your MoOd? write here</h2>
+   
     <div className="signup-container">
       <div className="auth-card">
         <div className="auth-badge">
@@ -60,6 +65,7 @@ function Signup() {
         </p>
       </div>
     </div>
+     </>
   );
 }
 export default Signup;

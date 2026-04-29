@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {useNavigate,Link} from 'react-router-dom';
 import "../style.css"
-
+import {toast} from 'react-toastify';
 function Logins() {
   const navigate = useNavigate();
 
@@ -10,13 +10,13 @@ function Logins() {
     const formData = new FormData(e.target);
     const email = formData.get("email");
     const password = formData.get("password");
-
+     const API_BASE = import.meta.env.VITE_API_BASE ;
     if (!email || !password) {
-      alert("Please fill all required fields");
+      toast.warning("Please fill all required fields");
       return;
     }
     try {
-      const res = await fetch("http://localhost:4000/api/auth/login", {
+      const res = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -25,20 +25,25 @@ function Logins() {
        console.log("Login response:", data);
       if (data.success) {
         localStorage.setItem("token", data.data.token);
-        alert("login successfull")
+        localStorage.setItem('user_name', data.data.name);
+        toast.success("login successfull")
         navigate("/dashboard");
       } else {
-        alert(data.message);
+        toast.error(data.message);
          navigate("/");
       }
     } catch (err) {
-      alert("Something went wrong!");
+      toast.error("Something went wrong!",err);
+      console.log(err)
     }
   };
 
   return (
+     <>
+         <h2 className="journalheading"> What's In Your MoOd? write here</h2>
     <div className="login-container">
       <div className="auth-card">
+    
         <div className="auth-badge">
           <span className="badge-dot"></span> Secure login
         </div>
@@ -62,6 +67,7 @@ function Logins() {
         </p>
       </div>
     </div>
+    </>
   );
 }
 export default Logins;
